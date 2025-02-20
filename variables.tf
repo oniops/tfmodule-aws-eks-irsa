@@ -241,62 +241,6 @@ variable "fsx_lustre_csi_service_role_arns" {
   default = ["arn:aws:iam::*:role/aws-service-role/s3.data-source.lustre.fsx.amazonaws.com/*"]
 }
 
-# Karpenter controller
-variable "attach_karpenter_controller_policy" {
-  description = "Determines whether to attach the Karpenter Controller policy to the role"
-  type        = bool
-  default     = false
-}
-
-variable "karpenter_controller_cluster_id" {
-  description = "[Deprecated - use `karpenter_controller_cluster_name`] The name of the cluster where the Karpenter controller is provisioned/managing"
-  type        = string
-  default     = "*"
-}
-
-variable "karpenter_controller_cluster_name" {
-  description = "The name of the cluster where the Karpenter controller is provisioned/managing"
-  type        = string
-  default     = null
-}
-
-variable "karpenter_tag_key" {
-  description = "Tag key (`{key = value}`) applied to resources launched by Karpenter through the Karpenter provisioner"
-  type        = string
-  default     = "karpenter.sh/discovery"
-}
-
-variable "karpenter_controller_ssm_parameter_arns" {
-  description = "List of SSM Parameter ARNs that contain AMI IDs launched by Karpenter"
-  type = list(string)
-  # https://github.com/aws/karpenter/blob/ed9473a9863ca949b61b9846c8b9f33f35b86dbd/pkg/cloudprovider/aws/ami.go#L105-L123
-  default = ["arn:aws:ssm:*:*:parameter/aws/service/*"]
-}
-
-variable "karpenter_controller_node_role_arns" {
-  description = "List of node IAM role ARNs Karpenter can use to launch nodes"
-  type = list(string)
-  default     = []
-}
-
-variable "karpenter_subnet_account_id" {
-  description = "Account ID of where the subnets Karpenter will utilize resides. Used when subnets are shared from another account"
-  type        = string
-  default     = ""
-}
-
-variable "karpenter_sqs_queue_arn" {
-  description = "(Optional) ARN of SQS used by Karpenter when native node termination handling is enabled"
-  type        = string
-  default     = null
-}
-
-variable "enable_karpenter_instance_profile_creation" {
-  description = "Determines whether Karpenter will be allowed to create the IAM instance profile (v1beta1/v0.32+)"
-  type        = bool
-  default     = false
-}
-
 # AWS Load Balancer Controller
 variable "attach_load_balancer_controller_policy" {
   description = "Determines whether to attach the Load Balancer Controller policy to the role"

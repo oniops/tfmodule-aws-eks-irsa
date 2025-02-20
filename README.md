@@ -12,7 +12,6 @@ EKS 내에서 일반적으로 사용되는 컨트롤러/사용자 정의 리소�
 - [External DNS](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md#iam-policy)
 - [External Secrets](https://github.com/external-secrets/kubernetes-external-secrets#add-a-secret)
 - [FSx for Lustre CSI Driver](https://github.com/kubernetes-sigs/aws-fsx-csi-driver/blob/master/docs/README.md)
-- [Karpenter](https://github.com/aws/karpenter/blob/main/website/content/en/preview/getting-started/getting-started-with-karpenter/cloudformation.yaml)
 - [Load Balancer Controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/docs/install/iam_policy.json)
     - [Load Balancer Controller Target Group Binding Only](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/deploy/installation/#iam-permission-subset-for-those-who-use-targetgroupbinding-only-and-dont-plan-to-use-the-aws-load-balancer-controller-to-manage-security-group-rules)
 - [App Mesh Controller](https://github.com/aws/aws-app-mesh-controller-for-k8s/blob/master/config/iam/controller-iam-policy.json)
@@ -64,17 +63,17 @@ module "irsa" {
 
 ```hcl
 module "irsaCniVpc" {
-  source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.1.0"
+  source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.0.0"
   context               = module.ctx.context
   role_name             = "VpcCniDriver"
   cluster_name          = local.cluster_name
   cluster_simple_name   = local.cluster_simple_name
   attach_vpc_cni_policy = true
   vpc_cni_enable_ipv4   = true
-  oidc_providers = {
+  oidc_provider = {
     main = {
       provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
-      namespace_service_accounts = [ "kube-system:aws-alb-controller" ]
+      namespace_service_accounts = ["kube-system:aws-node"]
     }
   }
 }
@@ -94,19 +93,4 @@ module "irsaCertManager" {
   }
 }
 
-
-### IRSA for Karpenter Controller
-module "irsaKarpenter" {
-  source                             = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.1.0"
-  context                            = module.ctx.context
-  create                             = true
-  attach_karpenter_controller_policy = true
-  role_name                          = "karpenterController"
-  cluster_name                       = local.cluster_name
-  cluster_simple_name                = local.cluster_simple_name
-  oidc_provider = {
-    provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DD"
-    namespace_service_accounts = [ "karpenter:karpenter" ]
-  }
-}
 ```
