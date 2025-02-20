@@ -5,10 +5,9 @@ locals {
   project                         = var.context.project
   tags                            = var.context.tags
   name_prefix                     = var.context.name_prefix
-  iam_prefix                      = "${local.project}${title(local.cluster_simple_name)}"
   cluster_name                    = var.cluster_name
-  cluster_simple_name             = var.cluster_simple_name
-  role_name                       = "${local.project}${title(local.cluster_simple_name)}${title(var.role_name)}Role"
+  iam_prefix                      = "${local.project}${title(var.cluster_simple_name)}"
+  role_name                       = "${local.iam_prefix}${title(var.name)}Role"
   create_pod_identity_association = var.create && length(var.oidc_provider) > 0
 }
 

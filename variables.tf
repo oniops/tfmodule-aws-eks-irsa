@@ -4,7 +4,7 @@ variable "create" {
   default     = true
 }
 
-variable "role_name" {
+variable "name" {
   description = "IAM role name for IRSA"
   type        = string
 }
@@ -41,29 +41,19 @@ variable "role_policy_arns" {
 
 variable "oidc_provider" {
   type        = any
-  default     = {}
   description = <<-EOF
 Map of OIDC providers where each provider map should contain the `provider_arn` and `namespace_service_accounts`
 
   Exam 1)
     oidc_provider = {
       provider_arn               = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
-      namespace_service_accounts = [ "karpenter:karpenter" ]
+      namespace_service_accounts = [ "certmanager:certmanager" ]
     }
 
   Exam 2)
-    data "aws_eks_cluster" "this" {
-      name = local.cluster_name
-    }
-
-    locals {
-      oidc_provider_issuer = replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")
-      oidc_provider_arn = "arn:aws:iam::111122223333:oidc-provider/<local.oidc_provider_issuer>"
-    }
-
     oidc_provider = {
-      provider_arn               = local.oidc_provider_arn
-      namespace_service_accounts = [ "karpenter:karpenter" ]
+      provider_arn               = module.ctx.eks_oidc_provider_arn
+      namespace_service_accounts = [ "kube-system:aws-node" ]
     }
 
 EOF
@@ -318,7 +308,7 @@ variable "vpc_cni_enable_cloudwatch_logs" {
 variable "vpc_cni_enable_ipv4" {
   description = "Determines whether to enable IPv4 permissions for VPC CNI policy"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "vpc_cni_enable_ipv6" {

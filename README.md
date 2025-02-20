@@ -65,16 +65,15 @@ module "irsa" {
 module "irsaCniVpc" {
   source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.0.0"
   context               = module.ctx.context
-  role_name             = "VpcCniDriver"
+  name                  = "VpcCniDriver"
   cluster_name          = local.cluster_name
   cluster_simple_name   = local.cluster_simple_name
   attach_vpc_cni_policy = true
   vpc_cni_enable_ipv4   = true
   oidc_provider = {
-    main = {
-      provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
-      namespace_service_accounts = ["kube-system:aws-node"]
-    }
+    # provider_arn = module.ctx.eks_oidc_provider_arn
+    provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
+    namespace_service_accounts = [ "kube-system:aws-node" ]
   }
 }
 
@@ -83,7 +82,7 @@ module "irsaCniVpc" {
 module "irsaCertManager" {
   source                     = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.1.0"
   context                    = module.ctx.context
-  role_name                  = "certManager"
+  name                       = "certManager"
   attach_cert_manager_policy = true
   cluster_name               = local.cluster_name
   cluster_simple_name        = local.cluster_simple_name
