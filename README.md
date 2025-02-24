@@ -1,6 +1,8 @@
 # tfmodule-aws-eks-irsa
 
-이 모듈은 IRSA(IAM Role for Service Accounts) 인증을 구성합니다. EKS 위에 실행되는 애플리케이션은 Kubernetes Service Account를 통해 AWS IAM Role을 수임하여 클라우드 리소스를 액세스 할 수 있습니다.
+이 모듈은 [iam-role-for-service-accounts-eks](https://github.com/terraform-aws-modules/terraform-aws-iam/tree/master/modules/iam-role-for-service-accounts-eks) 오픈소스 프로젝트를 참고 하여, 
+IRSA(IAM Role for Service Accounts) 인증을 구성합니다. 
+EKS 위에 실행되는 애플리케이션은 Kubernetes Service Account를 통해 AWS IAM Role을 수임하여 클라우드 리소스를 액세스 할 수 있습니다.
 
 EKS 내에서 일반적으로 사용되는 컨트롤러/사용자 정의 리소스에 대한 선택적 정책과 함께 AWS EKS `ServiceAccount`에서 가정할 수 있는 IAM 역할을 만듭니다. 
 
@@ -23,7 +25,6 @@ EKS 내에서 일반적으로 사용되는 컨트롤러/사용자 정의 리소�
 - [VPC CNI](https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html)
 
 
-
 ## Usage 
 
 이 모듈을 통해 EKS 에서 실행되는 다양한 애플리케이션들이 각자의 AWS 클라우드 리소스를 액세스 하기위한 IRSA 인증 체계를 구성하여 제어합니다.
@@ -32,29 +33,21 @@ EKS 내에서 일반적으로 사용되는 컨트롤러/사용자 정의 리소�
 
 ### IRSA for App
 EKS 내의  `my-app-staging` SA(Service Account)가 IRSA 인증을 통해 myAppRole 역할을 생성 및 통합하는 예시입니다.  
-`my-app-staging` SA는 `default`, `canary`  두 개의 스테이지에 있으며 DR과 같은 Use-Case를 위해 사용될 수 있습니다. 
-특히, `us-east-1` 과 `ap-southeast-1`리전에 대해 one, two 각각의 OIDC 인증 제공자를 구성합니다. 
 
 ```hcl
 module "irsa" {
-  source    = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.0.0"
+  source    = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
   context   = var.context
-  role_name = "myAppRole"
+  name      = "myAppRole"
   
   role_policy_arns = {
     myAppRoleEC2Policy = "arn:aws:iam::111122223333:policy/myAppRoleEC2Policy"
     myAppRoleS3Policy  = "arn:aws:iam::111122223333:policy/myAppRoleS3Policy"
   }
-  
-  oidc_providers = {
-    one = {
-      provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
-      namespace_service_accounts = [ "default:my-app-staging", "canary:my-app-staging" ]
-    }
-    two = {
-      provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.ap-southeast-1.amazonaws.com/id/5C54DDF35ER54476848E7333374FF09G"
-      namespace_service_accounts = [ "default:my-app-staging" ]
-    }
+
+  oidc_provider = {
+    provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
+    namespace_service_accounts = [ "default:my-app-staging", "canary:my-app-staging" ]
   }
 }
 ```
@@ -63,16 +56,13 @@ module "irsa" {
 
 ```hcl
 module "irsaCniVpc" {
-  source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.0.0"
-  context               = module.ctx.context
+  source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
+  eks_context           = module.ctx.eks_context
   name                  = "VpcCniDriver"
-  cluster_name          = local.cluster_name
-  cluster_simple_name   = local.cluster_simple_name
   attach_vpc_cni_policy = true
   vpc_cni_enable_ipv4   = true
   oidc_provider = {
-    # provider_arn = module.ctx.eks_oidc_provider_arn
-    provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
+    provider_arn = module.ctx.eks_oidc_provider_arn # "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
     namespace_service_accounts = [ "kube-system:aws-node" ]
   }
 }
@@ -80,15 +70,27 @@ module "irsaCniVpc" {
 ### IRSA for CertManager
 
 module "irsaCertManager" {
-  source                     = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.1.0"
-  context                    = module.ctx.context
+  source                     = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
+  eks_context                = module.ctx.eks_context
   name                       = "certManager"
   attach_cert_manager_policy = true
-  cluster_name               = local.cluster_name
-  cluster_simple_name        = local.cluster_simple_name
   oidc_provider = {
-    provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/5C54DDF35ER19312844C7333374CC09D"
-    namespace_service_accounts = [ "certmanager:certmanager" ]
+    provider_arn                = module.ctx.eks_oidc_provider_arn
+    namespace_service_accounts  = [ "certmanager:certmanager" ]
+  }
+}
+
+### IRSA for EbsCsiDriver
+
+module "irsaEbsCsi" {
+  source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
+  eks_context           = module.ctx.eks_context
+  name                  = "EbsCsiDriver"
+  attach_ebs_csi_policy = true
+  ebs_csi_kms_ids       = [data.aws_kms_alias.YOUR_KMS.target_key_arn]
+  oidc_provider = {
+    provider_arn        = module.ctx.eks_oidc_provider_arn
+    namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
   }
 }
 

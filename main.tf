@@ -1,12 +1,13 @@
 locals {
-  account_id                      = var.context.account_id
-  region                          = var.context.region
+  account_id                      = var.eks_context.account_id
+  region                          = var.eks_context.region
   dns_suffix                      = data.aws_partition.current.dns_suffix
-  project                         = var.context.project
-  tags                            = var.context.tags
-  name_prefix                     = var.context.name_prefix
-  cluster_name                    = var.cluster_name
-  iam_prefix                      = "${local.project}${title(var.cluster_simple_name)}"
+  project                         = var.eks_context.project
+  tags                            = var.eks_context.tags
+  name_prefix                     = var.eks_context.name_prefix
+  cluster_name                    = var.eks_context.cluster_name
+  cluster_simple_name             = var.eks_context.cluster_simple_name
+  iam_prefix                      = "${local.project}${title(local.cluster_simple_name)}"
   role_name                       = "${local.iam_prefix}${title(var.name)}Role"
   create_pod_identity_association = var.create && length(var.oidc_provider) > 0
 }

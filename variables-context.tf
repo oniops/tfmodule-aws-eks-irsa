@@ -1,37 +1,43 @@
-variable "cluster_name" {
-  type = string
-  description = "The name of EKS Cluster"
-}
+# variable "cluster_name" {
+#   type = string
+#   description = "The name of EKS Cluster"
+# }
+# variable "cluster_simple_name" {
+#   type = string
+#   description = "The simple name of EKS Cluster"
+# }
 
-variable "cluster_simple_name" {
-  type = string
-  description = "The simple name of EKS Cluster"
-}
-
-variable "context" {
+variable "eks_context" {
   type = object({
-    account_id          = string
-    region              = string
-    project             = string
-    environment         = string
-    owner               = string
-    team                = string
-    name_prefix         = string
-    s3_bucket_prefix    = string
-    pri_domain          = string
-    tags = map(string)
-  })
-  description =<<-EOF
-Provides standardized naming policy and attribute information for data source reference to define cloud resources for a Project.
+    account_id                = string
+    region                    = string
+    project                   = string
+    owner                     = string
+    team                      = string
+    domain                    = string
+    pri_domain                = string
+    name_prefix               = string
+    tags                      = map(string)
 
-  eks_context = merge(module.ctx.context, {
-    cluster_name           = local.cluster_name
-    cluster_simple_name    = local.cluster_simple_name
-    cluster_version        = data.aws_eks_cluster.this.version
-    cluster_endpoint       = data.aws_eks_cluster.this.endpoint
-    cluster_auth_base64    = data.aws_eks_cluster.this.certificate_authority[0].data
-    service_ipv4_cidr      = data.aws_eks_cluster.this.kubernetes_network_config[0].service_ipv4_cidr
-    node_security_group_id = data.aws_security_group.node.id
+    # EKS
+    cluster_name              = string
+    cluster_simple_name       = string
+    cluster_version           = string
+    cluster_endpoint          = string
+    cluster_auth_base64       = string
+    service_ipv4_cidr         = string
+    node_security_group_id    = string
   })
+  description = <<-EOF
+
+module "ctx" {
+  source          = "git::https://code.bespinglobal.com/scm/op/tfmodule-context.git?ref=v1.3.0"
+  context         = var.context
+  eks_simple_name = var.cluster_simple_name
+}
+
+eks_context = module.ctx.eks_context
+
 EOF
+
 }

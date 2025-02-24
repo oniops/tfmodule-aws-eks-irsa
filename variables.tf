@@ -136,10 +136,15 @@ variable "attach_ebs_csi_policy" {
   default     = false
 }
 
-variable "ebs_csi_kms_cmk_ids" {
-  description = "KMS CMK IDs to allow EBS CSI to manage encrypted volumes"
+variable "ebs_csi_kms_ids" {
   type = list(string)
   default = []
+  description = <<-EOF
+KMS(CMK) IDs to allow EBS CSI to manage encrypted volumes.
+
+  data "aws_kms_alias" "this" {  name = "alias/your-cmk-alias-name"  }
+  ebs_csi_kms_ids = [data.aws_kms_alias.this.target_key_arn]
+EOF
 }
 
 # EFS CSI
