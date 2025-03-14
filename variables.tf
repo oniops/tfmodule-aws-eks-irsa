@@ -162,19 +162,43 @@ variable "attach_mountpoint_s3_csi_policy" {
 }
 
 variable "mountpoint_s3_csi_bucket_arns" {
-  description = "S3 bucket ARNs to allow Mountpoint S3 CSI to list buckets"
   type = list(string)
   default = []
+  description = <<-EOF
+S3 bucket ARNs to allow Mountpoint S3 CSI to list buckets.
+
+Usage)
+  attach_mountpoint_s3_csi_policy = true
+  mountpoint_s3_csi_bucket_arns = [
+    "arn:aws:s3:::your-s3-apple-bucket", "arn:aws:s3:::your-s3-banana-bucket"
+  ]
+  mountpoint_s3_csi_path_arns = [
+    "arn:aws:s3:::your-s3-apple-bucket/*", "arn:aws:s3:::your-s3-banana-bucket/s3mount/*"
+  ]
+EOF
+
+}
+
+variable "mountpoint_s3_csi_path_arns" {
+  type = list(string)
+  default = []
+  description = <<-EOF
+S3 path ARNs to allow Mountpoint S3 CSI driver to manage items at the provided path(s).
+
+Usage)
+  attach_mountpoint_s3_csi_policy = true
+  mountpoint_s3_csi_bucket_arns = [
+    "arn:aws:s3:::your-s3-apple-bucket", "arn:aws:s3:::your-s3-banana-bucket"
+  ]
+  mountpoint_s3_csi_path_arns = [
+    "arn:aws:s3:::your-s3-apple-bucket/*", "arn:aws:s3:::your-s3-banana-bucket/s3mount/*"
+  ]
+EOF
+
 }
 
 variable "mountpoint_s3_csi_kms_arns" {
   description = "KMS Key ARNs to allow Mountpoint S3 CSI driver to download and upload Objects of a S3 bucket using `aws:kms` SSE"
-  type = list(string)
-  default = []
-}
-
-variable "mountpoint_s3_csi_path_arns" {
-  description = "S3 path ARNs to allow Mountpoint S3 CSI driver to manage items at the provided path(s). This is required if `attach_mountpoint_s3_csi_policy = true`"
   type = list(string)
   default = []
 }
