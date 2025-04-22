@@ -9,75 +9,19 @@ locals {
   cluster_simple_name             = var.eks_context.cluster_simple_name
   iam_prefix                      = "${local.project}${title(local.cluster_simple_name)}"
   role_name                       = "${local.iam_prefix}${title(var.name)}Role"
-  create_pod_identity_association = var.create && length(var.oidc_provider) > 0
-}
+  enable_pod_identity_association = var.create && var.enable_pod_identity_association
+  enable_irsa_oidc_association    = var.create && length(var.oidc_provider) > 0
 
-data "aws_iam_policy_document" "this" {
-  count = var.create ? 1 : 0
+  irsa_trusted_role = templatefile("${path.module}/templates/irsa-role-trusted-v1.0.tpl", {
+    allow_self_assume_role          = var.allow_self_assume_role
+    enable_irsa_oidc_association    = local.enable_irsa_oidc_association
+    enable_pod_identity_association = local.enable_pod_identity_association
+    principal_role_arn              = "arn:aws:iam::${local.account_id}:role${var.role_path}${local.role_name}"
+    provider_arn                    = var.oidc_provider.provider_arn
+    namespace_service_accounts      = var.oidc_provider.namespace_service_accounts
+    assume_role_condition_test      = var.assume_role_condition_test
+  })
 
-  dynamic "statement" {
-    # https://aws.amazon.com/blogs/security/announcing-an-update-to-iam-role-trust-policy-behavior/
-    for_each = var.allow_self_assume_role ? [1] : []
-
-    content {
-      sid    = "ExplicitSelfRoleAssumption"
-      effect = "Allow"
-      principals {
-        type = "AWS"
-        identifiers = ["*"]
-      }
-      actions = ["sts:AssumeRole"]
-      condition {
-        test     = "ArnLike"
-        variable = "aws:PrincipalArn"
-        values = ["arn:aws:iam::${local.account_id}:role${var.role_path}${local.role_name}"]
-      }
-    }
-  }
-
-  dynamic "statement" {
-    # https://aws.amazon.com/blogs/security/announcing-an-update-to-iam-role-trust-policy-behavior/
-    for_each = local.create_pod_identity_association ? [1] : []
-    content {
-      sid    = "ExplicitPodIdentityRoleAssumption"
-      effect = "Allow"
-      principals {
-        type = "Service"
-        identifiers = ["pods.eks.amazonaws.com"]
-      }
-      actions = [
-        "sts:TagSession",
-        "sts:AssumeRole"
-      ]
-    }
-  }
-
-  dynamic "statement" {
-    for_each = local.create_pod_identity_association ? [1] : []
-
-    content {
-      effect = "Allow"
-      principals {
-        type = "Federated"
-        identifiers = [var.oidc_provider.provider_arn]
-      }
-
-      actions = ["sts:AssumeRoleWithWebIdentity"]
-
-      condition {
-        test     = var.assume_role_condition_test
-        variable = "${replace(var.oidc_provider.provider_arn, "/^(.*provider/)/", "")}:sub"
-        values   = [for sa in var.oidc_provider.namespace_service_accounts : "system:serviceaccount:${sa}"]
-      }
-
-      # https://aws.amazon.com/premiumsupport/knowledge-center/eks-troubleshoot-oidc-and-irsa/?nc1=h_ls
-      condition {
-        test     = var.assume_role_condition_test
-        variable = "${replace(var.oidc_provider.provider_arn, "/^(.*provider/)/", "")}:aud"
-        values = ["sts.amazonaws.com"]
-      }
-    }
-  }
 }
 
 resource "aws_iam_role" "this" {
@@ -85,7 +29,7 @@ resource "aws_iam_role" "this" {
   name                  = local.role_name
   path                  = var.role_path
   description           = var.role_description
-  assume_role_policy    = data.aws_iam_policy_document.this[0].json
+  assume_role_policy    = local.irsa_trusted_role
   max_session_duration  = var.max_session_duration
   permissions_boundary  = var.role_permissions_boundary_arn
   force_detach_policies = var.force_detach_policies

@@ -77,11 +77,21 @@ variable "assume_role_condition_test" {
   default     = "StringEquals"
 }
 
+variable "enable_pod_identity_association" {
+  type        = bool
+  default     = false
+  description = <<-EOF
+Determines whether to allow the role to be [pod-identity-association](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/pod-identities.html)
+see - [EKS Pod Identity restrictions](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html#pod-id-restrictions)
+
+EOF
+}
+
 variable "allow_self_assume_role" {
   type        = bool
   default     = false
   description = <<-EOF
-Determines whether to allow the role to be [assume itself](https://aws.amazon.com/blogs/security/announcing-an-update-to-iam-role-trust-policy-behavior/)
+Determines whether to allow the role to be [assume itself](https://docs.aws.amazon.com/ko_kr/IAM/latest/UserGuide/id_credentials_temp_control-access_monitor.html#id_credentials_temp_control-access_monitor-assume-role-web-id)
 Strongly recommend `false` for Security, Only quickly test about pod feature.
 EOF
 }
