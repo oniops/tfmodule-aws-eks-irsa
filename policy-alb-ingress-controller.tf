@@ -12,7 +12,7 @@ locals {
 
 resource "aws_iam_policy" "load_balancer_controller" {
   count       = var.create && var.attach_load_balancer_controller_policy ? 1 : 0
-  name_prefix = local.alb_ingress_controller_policy_name
+  name        = local.alb_ingress_controller_policy_name
   path        = var.role_path
   description = "Provides permissions for AWS Load Balancer Controller addon"
   policy      = local.alb_ingress_controller_policy
