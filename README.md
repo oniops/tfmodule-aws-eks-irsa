@@ -35,8 +35,8 @@ EKS 내에서 일반적으로 사용되는 컨트롤러/사용자 정의 리소�
 EKS 내의  `my-app-staging` SA(Service Account)가 IRSA 인증을 통해 myAppRole 역할을 생성 및 통합하는 예시입니다.  
 
 ```hcl
-module "irsa" {
-  source    = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
+module "irsa" {  
+  source    = "git::https://github.com/oniops/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
   context   = var.context
   name      = "myAppRole"
   
@@ -56,7 +56,7 @@ module "irsa" {
 
 ```hcl
 module "irsaCniVpc" {
-  source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
+  source                = "git::https://github.com/oniops/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
   eks_context           = module.ctx.eks_context
   name                  = "VpcCniDriver"
   attach_vpc_cni_policy = true
@@ -70,7 +70,7 @@ module "irsaCniVpc" {
 ### IRSA for CertManager
 
 module "irsaCertManager" {
-  source                     = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
+  source                     = "git::https://github.com/oniops/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
   eks_context                = module.ctx.eks_context
   name                       = "certManager"
   attach_cert_manager_policy = true
@@ -83,7 +83,7 @@ module "irsaCertManager" {
 ### IRSA for EbsCsiDriver
 
 module "irsaEbsCsi" {
-  source                = "git::https://code.bespinglobal.com/scm/op/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
+  source                = "git::https://github.com/oniops/tfmodule-aws-eks-irsa.git?ref=v1.2.0"
   eks_context           = module.ctx.eks_context
   name                  = "EbsCsiDriver"
   attach_ebs_csi_policy = true

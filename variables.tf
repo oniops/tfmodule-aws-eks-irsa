@@ -277,6 +277,7 @@ variable "attach_load_balancer_controller_policy" {
   default     = false
 }
 
+/*
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/guide/targetgroupbinding/targetgroupbinding/#reference
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/deploy/installation/#setup-iam-manually
 variable "attach_load_balancer_controller_targetgroup_binding_only_policy" {
@@ -284,6 +285,7 @@ variable "attach_load_balancer_controller_targetgroup_binding_only_policy" {
   type        = bool
   default     = false
 }
+ */
 
 variable "load_balancer_controller_targetgroup_arns" {
   description = "List of Target groups ARNs using Load Balancer Controller"

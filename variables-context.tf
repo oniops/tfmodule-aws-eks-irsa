@@ -31,7 +31,7 @@ variable "eks_context" {
   description = <<-EOF
 
 module "ctx" {
-  source          = "git::https://code.bespinglobal.com/scm/op/tfmodule-context.git?ref=v1.3.0"
+  source          = "git::https://github.com/oniops/tfmodule-context.git?ref=v1.3.0"
   context         = var.context
   eks_simple_name = var.cluster_simple_name
 }
